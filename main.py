@@ -2,6 +2,7 @@ import tkinter
 from tkinter import *
 from tkinter import messagebox
 import pyperclip
+import json
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
 
 # ---------------------------- SAVE PASSWORD ------------------------------- #
@@ -19,9 +20,11 @@ canvas.grid(row=0,column=1)
 website=Label(text="Website")
 website.grid(row=1, column=0)
 
-web_box=Entry(width=50)
-web_box.grid(row=1, column=1, columnspan=2)
+web_box=Entry(width=36)
+web_box.grid(row=1, column=1)
 web_box.focus()
+
+
 
 email=Label(text="Email/Username")
 email.grid(row=2, column=0)
@@ -73,20 +76,43 @@ def add_data():
     passdata = pass_box.get()
     webdata = web_box.get()
     emaildata = mail_box.get()
+    new_data={
+        webdata:{
+            "email":emaildata,
+            "password":passdata
+        }
+    }
+
     ok=messagebox.askokcancel(title="Confirm", message="Save the password?")
     print(ok)
     if ok:
-        with open("data.txt", "a") as f:
-            f.write(f"{webdata} | {emaildata} | {passdata} \n")
+        with open("data.json", "r") as f:
+            data=json.load(f)
+            data.update(new_data)
+
+        with open("data.json", "w") as f:
+            json.dump(data, f, indent=4)
             web_box.delete(0,END)
             pass_box.delete(0,END)
 
+
+def search_pass():
+    with open("data.json", "r") as f:
+        data=json.load(f)
+        found=False
+        for web in data:
+            if web==web_box.get():
+                messagebox.showinfo(title=web, message=f"Email/Username: {data[web]["email"]} \nPassword: {data[web]["password"]}")
+                found=True
+        if not found:
+            messagebox.showinfo(title="Passwor Manager",message="Passwor not found")
 
 
 pass_button=Button(text="Generate Password", command=random_pass)
 pass_button.grid(row=4, column=1)
 
-
+search=Button(text="Search", width=10, command=search_pass)
+search.grid(row=1, column=2)
 
 pass_button=Button(text="Add",width=11, command=add_data)
 pass_button.grid(row=4, column=2)
